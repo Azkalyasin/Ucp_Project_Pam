@@ -3,7 +3,7 @@ package com.example.ucp_project_pam.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ucp_project_pam.modeldata.*
-import com.example.ucp_project_pam.repositori.RepositoryAuth
+import com.example.ucp_project_pam.repositori.auth.RepositoryAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

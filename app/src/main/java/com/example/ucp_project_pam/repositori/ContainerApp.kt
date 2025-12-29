@@ -4,7 +4,15 @@ package com.example.ucp_project_pam.repositori
 import android.app.Application
 import android.content.Context
 import com.example.ucp_project_pam.apiservice.AuthApiService
+import com.example.ucp_project_pam.apiservice.CategoryApiService
+import com.example.ucp_project_pam.apiservice.MenuApiService
 import com.example.ucp_project_pam.data.TokenManager
+import com.example.ucp_project_pam.repositori.auth.JaringanRepositoryAuth
+import com.example.ucp_project_pam.repositori.auth.RepositoryAuth
+import com.example.ucp_project_pam.repositori.category.JaringanRepositoryCategory
+import com.example.ucp_project_pam.repositori.category.RepositoryCategory
+import com.example.ucp_project_pam.repositori.menu.JaringanRepositoryMenu
+import com.example.ucp_project_pam.repositori.menu.RepositoryMenu
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.Interceptor
@@ -17,6 +25,9 @@ import java.util.concurrent.TimeUnit
 interface ContainerApp {
     val repositoryAuth: RepositoryAuth
     val tokenManager: TokenManager
+
+    val repositoryCategory: RepositoryCategory
+    val repositoryMenu: RepositoryMenu
 }
 
 class DefaultContainerApp(private val context: Context) : ContainerApp {
@@ -71,14 +82,30 @@ class DefaultContainerApp(private val context: Context) : ContainerApp {
         .client(client)
         .build()
 
-
+    // ==================== API SERVICES ====================
     private val authApiService: AuthApiService by lazy {
         retrofit.create(AuthApiService::class.java)
     }
 
-    // Repository - PENTING: Pass tokenManager ke repository!
+    private val categoryApiService: CategoryApiService by lazy {
+        retrofit.create(CategoryApiService::class.java)
+    }
+
+    private val menuApiService: MenuApiService by lazy {
+        retrofit.create(MenuApiService::class.java)
+    }
+
+    // ==================== REPOSITORIES ====================
     override val repositoryAuth: RepositoryAuth by lazy {
         JaringanRepositoryAuth(authApiService, tokenManager)
+    }
+
+    override val repositoryCategory: RepositoryCategory by lazy {
+        JaringanRepositoryCategory(categoryApiService, tokenManager, repositoryAuth)
+    }
+
+    override val repositoryMenu: RepositoryMenu by lazy {
+        JaringanRepositoryMenu(menuApiService, tokenManager, repositoryAuth)
     }
 }
 

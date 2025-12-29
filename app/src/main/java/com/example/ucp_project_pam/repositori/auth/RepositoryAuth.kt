@@ -1,5 +1,4 @@
-
-package com.example.ucp_project_pam.repositori
+package com.example.ucp_project_pam.repositori.auth
 
 import com.example.ucp_project_pam.apiservice.AuthApiService
 import com.example.ucp_project_pam.data.TokenManager

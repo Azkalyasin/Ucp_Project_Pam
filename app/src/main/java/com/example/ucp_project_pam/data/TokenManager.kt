@@ -1,4 +1,4 @@
-// File: data/TokenManager.kt
+
 package com.example.ucp_project_pam.data
 
 import android.content.Context
@@ -64,32 +64,6 @@ class TokenManager(context: Context) {
     fun getRefreshToken(): String? {
         return prefs.getString(KEY_REFRESH_TOKEN, null)
     }
-
-
-    fun getUserId(): Int {
-        return prefs.getInt(KEY_USER_ID, -1)
-    }
-
-
-    fun getUserName(): String? {
-        return prefs.getString(KEY_USER_NAME, null)
-    }
-
-
-    fun getUserEmail(): String? {
-        return prefs.getString(KEY_USER_EMAIL, null)
-    }
-
-
-    fun getUserPhone(): String? {
-        return prefs.getString(KEY_USER_PHONE, null)
-    }
-
-
-    fun getUserRole(): String? {
-        return prefs.getString(KEY_USER_ROLE, null)
-    }
-
 
     fun isLoggedIn(): Boolean {
         return getAccessToken() != null
