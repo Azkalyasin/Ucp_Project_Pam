@@ -83,6 +83,11 @@ class CategoryFormViewModel(
     }
 
     fun updateCategory() {
+        if (categoryFormState.id <= 0) {
+            categoryMutationUiState =
+                CategoryMutationUiState.Error("ID kategori tidak valid")
+            return
+        }
         viewModelScope.launch {
             val validatedForm = categoryFormState.validate()
             categoryFormState = validatedForm

@@ -41,7 +41,7 @@ fun CategoryFormScreen(
 
     // Load category untuk edit
     LaunchedEffect(categoryId) {
-        if (isEditMode && categoryId != null) {
+        if (categoryId != null && categoryId > 0) {
             viewModel.getCategoryById(categoryId)
         } else {
             viewModel.resetForm()

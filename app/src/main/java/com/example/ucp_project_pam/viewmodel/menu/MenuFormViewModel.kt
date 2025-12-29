@@ -2,6 +2,7 @@ package com.example.ucp_project_pam.viewmodel.menu
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -85,6 +86,7 @@ class MenuFormViewModel(
     }
 
     fun updateMenu(context: Context) {
+        Log.e("UPDATE_MENU_DEBUG", "ID = ${menuFormState.id}")
         viewModelScope.launch {
             val validatedForm = menuFormState.validate()
             menuFormState = validatedForm
