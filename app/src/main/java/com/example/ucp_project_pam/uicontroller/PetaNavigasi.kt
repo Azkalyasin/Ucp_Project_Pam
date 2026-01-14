@@ -6,17 +6,12 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.ucp_project_pam.view.customer.HomeScreenCustomer
-import com.example.ucp_project_pam.view.admin.HomeScreenAdmin
-import com.example.ucp_project_pam.view.admin.category.CategoryListScreen
-import com.example.ucp_project_pam.view.admin.category.CategoryFormScreen
-import com.example.ucp_project_pam.view.admin.category.CategoryDetailScreen
-import com.example.ucp_project_pam.view.admin.menu.MenuListScreen
-import com.example.ucp_project_pam.view.admin.menu.MenuFormScreen
-import com.example.ucp_project_pam.view.admin.menu.MenuDetailScreen
-import com.example.ucp_project_pam.view.LoginScreen
-import com.example.ucp_project_pam.view.ProfileScreen
-import com.example.ucp_project_pam.view.RegisterScreen
+import com.example.ucp_project_pam.view.customer.*
+import com.example.ucp_project_pam.view.admin.*
+import com.example.ucp_project_pam.view.admin.category.*
+import com.example.ucp_project_pam.view.admin.menu.*
+import com.example.ucp_project_pam.view.admin.order.* // ✅ TAMBAH import
+import com.example.ucp_project_pam.view.*
 import com.example.ucp_project_pam.viewmodel.AuthViewModel
 import com.example.ucp_project_pam.viewmodel.ProfileViewModel
 
@@ -31,7 +26,8 @@ fun PetaNavigasi(
         startDestination = "login"
     ) {
 
-        // 🔐 LOGIN
+        // ==================== AUTH ====================
+
         composable("login") {
             LoginScreen(
                 authViewModel = authViewModel,
@@ -41,7 +37,7 @@ fun PetaNavigasi(
                             popUpTo("login") { inclusive = true }
                         }
                     } else {
-                        navController.navigate("home_user") {
+                        navController.navigate("home_customer") {
                             popUpTo("login") { inclusive = true }
                         }
                     }
@@ -52,7 +48,6 @@ fun PetaNavigasi(
             )
         }
 
-        // 📝 REGISTER
         composable("register") {
             RegisterScreen(
                 authViewModel = authViewModel,
@@ -67,7 +62,8 @@ fun PetaNavigasi(
             )
         }
 
-        // 🏠 HOME ADMIN
+        // ==================== ADMIN HOME ====================
+
         composable("home_admin") {
             HomeScreenAdmin(
                 onProfileClick = {
@@ -76,8 +72,11 @@ fun PetaNavigasi(
                 onCategoryClick = {
                     navController.navigate("category_list")
                 },
-                onMenuClick = { // ✅ Tambahkan ini
+                onMenuClick = {
                     navController.navigate("menu_list")
+                },
+                onOrderClick = { // ✅ TAMBAH
+                    navController.navigate("admin_order_list")
                 },
                 onLogout = {
                     authViewModel.resetState()
@@ -88,12 +87,22 @@ fun PetaNavigasi(
             )
         }
 
-        // 🏠 HOME CUSTOMER
-        composable("home_user") {
+        // ==================== CUSTOMER HOME ====================
+
+        composable("home_customer") {
             HomeScreenCustomer(
                 onProfileClick = {
                     navController.navigate("profile")
                 },
+                onMenuClick = {
+                    navController.navigate("customer_menu_list")
+                },
+                onCartClick = {
+                    navController.navigate("cart")
+                },
+                onOrdersClick = { // ✅ TAMBAH
+                    navController.navigate("customer_order_list")
+                },
                 onLogout = {
                     authViewModel.resetState()
                     navController.navigate("login") {
@@ -103,7 +112,8 @@ fun PetaNavigasi(
             )
         }
 
-        // 👤 PROFILE
+        // ==================== PROFILE ====================
+
         composable("profile") {
             ProfileScreen(
                 viewModel = profileViewModel,
@@ -116,17 +126,12 @@ fun PetaNavigasi(
             )
         }
 
-        // ==================== CATEGORY ROUTES ====================
+        // ==================== CATEGORY ROUTES (ADMIN) ====================
 
-        // 📂 CATEGORY LIST
         composable("category_list") {
             CategoryListScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onAddCategory = {
-                    navController.navigate("category_form")
-                },
+                onNavigateBack = { navController.popBackStack() },
+                onAddCategory = { navController.navigate("category_form") },
                 onItemClick = { categoryId ->
                     navController.navigate("category_detail/$categoryId")
                 },
@@ -136,133 +141,176 @@ fun PetaNavigasi(
             )
         }
 
-        // 👁️ CATEGORY DETAIL
         composable(
             route = "category_detail/{categoryId}",
-            arguments = listOf(
-                navArgument("categoryId") {
-                    type = NavType.IntType
-                }
-            )
+            arguments = listOf(navArgument("categoryId") { type = NavType.IntType })
         ) { backStackEntry ->
             val categoryId = backStackEntry.arguments?.getInt("categoryId") ?: 0
             CategoryDetailScreen(
                 categoryId = categoryId,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onEditClick = {
-                    navController.navigate("category_form/$categoryId")
-                }
+                onNavigateBack = { navController.popBackStack() },
+                onEditClick = { id -> navController.navigate("category_form/$id") }
             )
         }
 
-        // ➕ CATEGORY FORM (CREATE)
         composable("category_form") {
             CategoryFormScreen(
                 categoryId = null,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onSuccess = {
-                    navController.popBackStack()
-                }
+                onNavigateBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() }
             )
         }
 
-        // ✏️ CATEGORY FORM (EDIT)
         composable(
             route = "category_form/{categoryId}",
-            arguments = listOf(
-                navArgument("categoryId") {
-                    type = NavType.IntType
-                }
-            )
+            arguments = listOf(navArgument("categoryId") { type = NavType.IntType })
         ) { backStackEntry ->
             val categoryId = backStackEntry.arguments?.getInt("categoryId")
             CategoryFormScreen(
                 categoryId = categoryId,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onSuccess = {
-                    navController.popBackStack()
-                }
+                onNavigateBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() }
             )
         }
 
-        // ==================== MENU ROUTES ✅ BARU ====================
+        // ==================== MENU ROUTES (ADMIN) ====================
 
-        // 🍽️ MENU LIST
         composable("menu_list") {
             MenuListScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onAddMenu = {
-                    navController.navigate("menu_form")
-                },
-                onItemClick = { menuId ->
-                    navController.navigate("menu_detail/$menuId")
-                },
-                onEditMenu = { menuId ->
-                    navController.navigate("menu_form/$menuId")
-                }
+                onNavigateBack = { navController.popBackStack() },
+                onAddMenu = { navController.navigate("menu_form") },
+                onItemClick = { menuId -> navController.navigate("menu_detail/$menuId") },
+                onEditMenu = { menuId -> navController.navigate("menu_form/$menuId") }
             )
         }
 
-        // 👁️ MENU DETAIL
         composable(
             route = "menu_detail/{menuId}",
-            arguments = listOf(
-                navArgument("menuId") {
-                    type = NavType.IntType
-                }
-            )
+            arguments = listOf(navArgument("menuId") { type = NavType.IntType })
         ) { backStackEntry ->
             val menuId = backStackEntry.arguments?.getInt("menuId") ?: 0
             MenuDetailScreen(
                 menuId = menuId,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onEditClick = { id ->
-                    navController.navigate("menu_form/$id")
-                }
+                onNavigateBack = { navController.popBackStack() },
+                onEditClick = { id -> navController.navigate("menu_form/$id") }
             )
         }
 
-        // ➕ MENU FORM (CREATE)
         composable("menu_form") {
             MenuFormScreen(
                 menuId = null,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onSuccess = {
-                    navController.popBackStack()
-                }
+                onNavigateBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() }
             )
         }
 
-        // ✏️ MENU FORM (EDIT)
         composable(
             route = "menu_form/{menuId}",
-            arguments = listOf(
-                navArgument("menuId") {
-                    type = NavType.IntType
-                }
-            )
+            arguments = listOf(navArgument("menuId") { type = NavType.IntType })
         ) { backStackEntry ->
             val menuId = backStackEntry.arguments?.getInt("menuId")
             MenuFormScreen(
                 menuId = menuId,
-                onNavigateBack = {
-                    navController.popBackStack()
+                onNavigateBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() }
+            )
+        }
+
+        // ==================== CUSTOMER MENU ROUTES ====================
+
+        composable("customer_menu_list") {
+            CustomerMenuListScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onMenuClick = { menuId ->
+                    navController.navigate("customer_menu_detail/$menuId")
                 },
-                onSuccess = {
-                    navController.popBackStack()
+                onCartClick = { navController.navigate("cart") }
+            )
+        }
+
+        composable(
+            route = "customer_menu_detail/{menuId}",
+            arguments = listOf(navArgument("menuId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val menuId = backStackEntry.arguments?.getInt("menuId") ?: 0
+            CustomerMenuDetailScreen(
+                menuId = menuId,
+                onNavigateBack = { navController.popBackStack() },
+                onCartClick = { navController.navigate("cart") }
+            )
+        }
+
+        // ==================== CART ROUTES ====================
+
+        composable("cart") {
+            CartScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onBrowseMenu = {
+                    navController.navigate("customer_menu_list") {
+                        popUpTo("home_customer")
+                    }
+                },
+                onCheckout = { navController.navigate("checkout") } // ✅ UPDATE
+            )
+        }
+
+        // ==================== ORDER ROUTES (CUSTOMER) ✅ BARU ====================
+
+        // Checkout
+        composable("checkout") {
+            CheckoutScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onOrderSuccess = { orderId ->
+                    navController.navigate("customer_order_detail/$orderId") {
+                        popUpTo("home_customer")
+                    }
                 }
+            )
+        }
+
+        // Customer Order List
+        composable("customer_order_list") {
+            CustomerOrderListScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onOrderClick = { orderId ->
+                    navController.navigate("customer_order_detail/$orderId")
+                }
+            )
+        }
+
+        // Customer Order Detail
+        composable(
+            route = "customer_order_detail/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getInt("orderId") ?: 0
+            CustomerOrderDetailScreen(
+                orderId = orderId,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // ==================== ORDER ROUTES (ADMIN) ✅ BARU ====================
+
+        // Admin Order List
+        composable("admin_order_list") {
+            AdminOrderListScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onOrderClick = { orderId ->
+                    navController.navigate("admin_order_detail/$orderId")
+                }
+            )
+        }
+
+        // Admin Order Detail
+        composable(
+            route = "admin_order_detail/{orderId}",
+            arguments = listOf(navArgument("orderId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getInt("orderId") ?: 0
+            AdminOrderDetailScreen(
+                orderId = orderId,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

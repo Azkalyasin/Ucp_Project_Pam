@@ -3,49 +3,6 @@ package com.example.ucp_project_pam.modeldata
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-// ==================== REQUEST MODELS ====================
-@Serializable
-data class CreateMenuRequest(
-    @SerialName("name")
-    val name: String,
-
-    @SerialName("description")
-    val description: String? = null,
-
-    @SerialName("price")
-    val price: Double,
-
-    @SerialName("category_id")
-    val categoryId: Int,
-
-    @SerialName("is_available")
-    val isAvailable: Boolean = true,
-
-    @SerialName("stock")
-    val stock: Int? = null
-)
-
-@Serializable
-data class UpdateMenuRequest(
-    @SerialName("name")
-    val name: String? = null,
-
-    @SerialName("description")
-    val description: String? = null,
-
-    @SerialName("price")
-    val price: Double? = null,
-
-    @SerialName("category_id")
-    val categoryId: Int? = null,
-
-    @SerialName("is_available")
-    val isAvailable: Boolean? = null,
-
-    @SerialName("stock")
-    val stock: Int? = null
-)
-
 // ==================== RESPONSE MODELS ====================
 @Serializable
 data class MenuListResponse(
@@ -109,6 +66,12 @@ data class MenuCategory(
 
     @SerialName("name")
     val name: String
+)
+
+data class MenuFilterState(
+    val categoryId: Int? = null,
+    val isAvailable: Boolean? = null,
+    val searchQuery: String = ""
 )
 
 // ==================== UI STATES ====================

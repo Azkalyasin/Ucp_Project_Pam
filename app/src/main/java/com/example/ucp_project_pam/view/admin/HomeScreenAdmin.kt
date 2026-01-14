@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.dp
 fun HomeScreenAdmin(
     onProfileClick: () -> Unit,
     onCategoryClick: () -> Unit,
-    onMenuClick: () -> Unit, // ✅ Tambahkan parameter ini
+    onMenuClick: () -> Unit,
+    onOrderClick: () -> Unit, // ✅ TAMBAH parameter ini
     onLogout: () -> Unit
 ) {
     Scaffold(
@@ -80,29 +81,28 @@ fun HomeScreenAdmin(
             )
 
             // Category Management
-            MenuCard(
+            AdminMenuCard(
                 title = "Kategori Produk",
                 description = "Kelola kategori produk UMKM",
                 icon = Icons.Default.List,
                 onClick = onCategoryClick
             )
 
-            // Menu Management ✅ AKTIFKAN INI
-            MenuCard(
+            // Menu Management
+            AdminMenuCard(
                 title = "Menu Produk",
                 description = "Kelola menu dan produk UMKM",
-                icon = Icons.Default.Refresh,
-                onClick = onMenuClick, // ✅ Ganti dengan onMenuClick
-                enabled = true // ✅ Ubah jadi true
+                icon = Icons.Default.ShoppingCart,
+                onClick = onMenuClick
             )
 
-            // Order Management (Placeholder)
-            MenuCard(
+            // Order Management ✅ AKTIFKAN INI
+            AdminMenuCard(
                 title = "Pesanan",
                 description = "Kelola pesanan pelanggan",
-                icon = Icons.Default.ShoppingCart,
-                onClick = { /* TODO: Navigate to orders */ },
-                enabled = false
+                icon = Icons.Default.ShoppingCart, // ✅ GANTI icon
+                onClick = onOrderClick, // ✅ GANTI onClick
+                enabled = true // ✅ UBAH jadi true
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -128,7 +128,7 @@ fun HomeScreenAdmin(
 }
 
 @Composable
-fun MenuCard(
+fun AdminMenuCard(
     title: String,
     description: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,

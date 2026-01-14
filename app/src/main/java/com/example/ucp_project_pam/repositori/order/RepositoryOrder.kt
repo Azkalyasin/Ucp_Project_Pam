@@ -1,6 +1,6 @@
-package com.example.ucp_project_pam.repositori.cart
+package com.example.ucp_project_pam.repositori.order
 
-import com.example.ucp_project_pam.apiservice.CartApiService
+import com.example.ucp_project_pam.apiservice.OrderApiService
 import com.example.ucp_project_pam.data.TokenManager
 import com.example.ucp_project_pam.modeldata.*
 import com.example.ucp_project_pam.repositori.auth.RepositoryAuth
@@ -8,19 +8,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-interface RepositoryCart {
-    suspend fun getMyCart(): Result<Cart>
-    suspend fun addItemToCart(menuId: Int, quantity: Int): Result<Cart>
-    suspend fun updateCartItem(menuId: Int, quantity: Int): Result<Cart>
-    suspend fun removeCartItem(menuId: Int): Result<Cart>
-    suspend fun clearCart(): Result<Cart>
+interface RepositoryOrder {
+    suspend fun createOrder(address: String): Result<Order>
+    suspend fun getOrderById(id: Int): Result<Order>
+
+    suspend fun getMyOrders(): Result<List<Order>>
+    suspend fun updateOrderStatus(orderNumber: String, status: String): Result<Order>
+
+    suspend fun getAllOrders(): Result<List<Order>>
 }
 
-class JaringanRepositoryCart(
-    private val cartApiService: CartApiService,
+class JaringanRepositoryOrder(
+    private val orderApiService: OrderApiService,
     private val tokenManager: TokenManager,
     private val authRepository: RepositoryAuth
-) : RepositoryCart {
+) : RepositoryOrder {
 
     private suspend fun <T> executeWithAuth(apiCall: suspend () -> T): T {
         return try {
@@ -43,11 +45,13 @@ class JaringanRepositoryCart(
         }
     }
 
-    // ==================== GET MY CART ====================
-    override suspend fun getMyCart(): Result<Cart> = withContext(Dispatchers.IO) {
+    // ==================== CREATE ORDER ====================
+    override suspend fun createOrder(address: String): Result<Order> = withContext(Dispatchers.IO) {
         try {
+            val request = CreateOrderRequest(address = address)
+
             val response = executeWithAuth {
-                cartApiService.getMyCart()
+                orderApiService.createOrder(request)
             }
 
             if (response.isSuccessful) {
@@ -55,10 +59,11 @@ class JaringanRepositoryCart(
                 if (body != null && body.success && body.data != null) {
                     Result.success(body.data)
                 } else {
-                    Result.failure(Exception(body?.message ?: "Gagal mengambil data keranjang"))
+                    Result.failure(Exception(body?.message ?: "Gagal membuat order"))
                 }
             } else {
                 val errorMessage = when (response.code()) {
+                    400 -> "Keranjang kosong atau data tidak valid"
                     401 -> "Sesi expired, silakan login kembali"
                     403 -> "Anda tidak memiliki akses"
                     404 -> "Keranjang tidak ditemukan"
@@ -74,19 +79,11 @@ class JaringanRepositoryCart(
         }
     }
 
-    // ==================== ADD ITEM TO CART ====================
-    override suspend fun addItemToCart(
-        menuId: Int,
-        quantity: Int
-    ): Result<Cart> = withContext(Dispatchers.IO) {
+    // ==================== GET ORDER BY ID ====================
+    override suspend fun getOrderById(id: Int): Result<Order> = withContext(Dispatchers.IO) {
         try {
-            val request = AddToCartRequest(
-                menuId = menuId,
-                quantity = quantity
-            )
-
             val response = executeWithAuth {
-                cartApiService.addItemToCart(request)
+                orderApiService.getOrderById(id)
             }
 
             if (response.isSuccessful) {
@@ -94,14 +91,83 @@ class JaringanRepositoryCart(
                 if (body != null && body.success && body.data != null) {
                     Result.success(body.data)
                 } else {
-                    Result.failure(Exception(body?.message ?: "Gagal menambahkan ke keranjang"))
+                    Result.failure(Exception(body?.message ?: "Order tidak ditemukan"))
+                }
+            } else {
+                val errorMessage = when (response.code()) {
+                    401 -> "Sesi expired, silakan login kembali"
+                    403 -> "Anda tidak memiliki akses"
+                    404 -> "Order tidak ditemukan"
+                    500 -> "Server error, coba lagi nanti"
+                    else -> "Error: ${response.code()}"
+                }
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: IOException) {
+            Result.failure(Exception("Tidak ada koneksi internet"))
+        } catch (e: Exception) {
+            Result.failure(Exception(e.message ?: "Terjadi kesalahan"))
+        }
+    }
+
+    // ==================== GET MY ORDERS ====================
+    override suspend fun getMyOrders(): Result<List<Order>> = withContext(Dispatchers.IO) {
+        try {
+            val response = executeWithAuth {
+                orderApiService.getMyOrders()
+            }
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null && body.success) {
+                    Result.success(body.data)
+                } else {
+                    Result.failure(Exception(body?.message ?: "Gagal mengambil daftar order"))
+                }
+            } else {
+                val errorMessage = when (response.code()) {
+                    401 -> "Sesi expired, silakan login kembali"
+                    403 -> "Anda tidak memiliki akses"
+                    500 -> "Server error, coba lagi nanti"
+                    else -> "Error: ${response.code()}"
+                }
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: IOException) {
+            Result.failure(Exception("Tidak ada koneksi internet"))
+        } catch (e: Exception) {
+            Result.failure(Exception(e.message ?: "Terjadi kesalahan"))
+        }
+    }
+
+    // ==================== UPDATE ORDER STATUS (ADMIN) ====================
+    override suspend fun updateOrderStatus(
+        orderNumber: String,
+        status: String
+    ): Result<Order> = withContext(Dispatchers.IO) {
+        try {
+            val request = UpdateOrderStatusRequest(
+                orderNumber = orderNumber,
+                status = status
+            )
+
+            val response = executeWithAuth {
+                orderApiService.updateOrderStatus(request)
+            }
+
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null && body.success && body.data != null) {
+                    Result.success(body.data)
+                } else {
+                    Result.failure(Exception(body?.message ?: "Gagal mengupdate status order"))
                 }
             } else {
                 val errorMessage = when (response.code()) {
                     400 -> "Data tidak valid"
                     401 -> "Sesi expired, silakan login kembali"
                     403 -> "Anda tidak memiliki akses"
-                    404 -> "Menu tidak ditemukan"
+                    404 -> "Order tidak ditemukan"
                     500 -> "Server error, coba lagi nanti"
                     else -> "Error: ${response.code()}"
                 }
@@ -114,90 +180,18 @@ class JaringanRepositoryCart(
         }
     }
 
-    // ==================== UPDATE CART ITEM ====================
-    override suspend fun updateCartItem(
-        menuId: Int,
-        quantity: Int
-    ): Result<Cart> = withContext(Dispatchers.IO) {
+    override suspend fun getAllOrders(): Result<List<Order>> = withContext(Dispatchers.IO) {
         try {
-            val request = UpdateCartItemRequest(
-                menuId = menuId,
-                quantity = quantity
-            )
-
             val response = executeWithAuth {
-                cartApiService.updateCartItem(request)
+                orderApiService.getAllOrders()
             }
 
             if (response.isSuccessful) {
                 val body = response.body()
-                if (body != null && body.success && body.data != null) {
+                if (body != null && body.success) {
                     Result.success(body.data)
                 } else {
-                    Result.failure(Exception(body?.message ?: "Gagal mengupdate keranjang"))
-                }
-            } else {
-                val errorMessage = when (response.code()) {
-                    400 -> "Data tidak valid"
-                    401 -> "Sesi expired, silakan login kembali"
-                    403 -> "Anda tidak memiliki akses"
-                    404 -> "Item tidak ditemukan"
-                    500 -> "Server error, coba lagi nanti"
-                    else -> "Error: ${response.code()}"
-                }
-                Result.failure(Exception(errorMessage))
-            }
-        } catch (e: IOException) {
-            Result.failure(Exception("Tidak ada koneksi internet"))
-        } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Terjadi kesalahan"))
-        }
-    }
-
-    // ==================== REMOVE CART ITEM ====================
-    override suspend fun removeCartItem(menuId: Int): Result<Cart> = withContext(Dispatchers.IO) {
-        try {
-            val response = executeWithAuth {
-                cartApiService.removeCartItem(menuId)
-            }
-
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null && body.success && body.data != null) {
-                    Result.success(body.data)
-                } else {
-                    Result.failure(Exception(body?.message ?: "Gagal menghapus item"))
-                }
-            } else {
-                val errorMessage = when (response.code()) {
-                    401 -> "Sesi expired, silakan login kembali"
-                    403 -> "Anda tidak memiliki akses"
-                    404 -> "Item tidak ditemukan"
-                    500 -> "Server error, coba lagi nanti"
-                    else -> "Error: ${response.code()}"
-                }
-                Result.failure(Exception(errorMessage))
-            }
-        } catch (e: IOException) {
-            Result.failure(Exception("Tidak ada koneksi internet"))
-        } catch (e: Exception) {
-            Result.failure(Exception(e.message ?: "Terjadi kesalahan"))
-        }
-    }
-
-    // ==================== CLEAR CART ====================
-    override suspend fun clearCart(): Result<Cart> = withContext(Dispatchers.IO) {
-        try {
-            val response = executeWithAuth {
-                cartApiService.clearCart()
-            }
-
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null && body.success && body.data != null) {
-                    Result.success(body.data)
-                } else {
-                    Result.failure(Exception(body?.message ?: "Gagal mengosongkan keranjang"))
+                    Result.failure(Exception(body?.message ?: "Gagal mengambil daftar order"))
                 }
             } else {
                 val errorMessage = when (response.code()) {
