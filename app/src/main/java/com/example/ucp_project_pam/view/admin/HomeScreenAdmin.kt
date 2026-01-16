@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,18 +20,22 @@ fun HomeScreenAdmin(
     onProfileClick: () -> Unit,
     onCategoryClick: () -> Unit,
     onMenuClick: () -> Unit,
-    onOrderClick: () -> Unit, // ✅ TAMBAH parameter ini
+    onOrderClick: () -> Unit,
     onLogout: () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Admin Dashboard") },
+                title = { Text("Admin Dashboard", color = Color.White) }, // ✅ Text putih
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFFF9800) // ✅ ORANGE
+                ),
                 actions = {
                     IconButton(onClick = onProfileClick) {
                         Icon(
                             imageVector = Icons.Default.Person,
-                            contentDescription = "Profile"
+                            contentDescription = "Profile",
+                            tint = Color.White // ✅ Icon putih
                         )
                     }
                 }
@@ -45,11 +50,11 @@ fun HomeScreenAdmin(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Welcome Card
+            // Welcome Card - ORANGE
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = Color(0xFFFFE0B2) // ✅ ORANGE TERANG
                 )
             ) {
                 Column(
@@ -61,13 +66,13 @@ fun HomeScreenAdmin(
                         text = "Selamat Datang, Admin!",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = Color(0xFFE65100) // ✅ ORANGE GELAP
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Kelola aplikasi UMKM Anda",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = Color(0xFFF57C00) // ✅ ORANGE MEDIUM
                     )
                 }
             }
@@ -77,42 +82,53 @@ fun HomeScreenAdmin(
                 text = "Manajemen Data",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 8.dp),
+                color = Color(0xFF424242) // ✅ GREY GELAP
             )
 
-            // Category Management
+            // Category Management - BLUE
             AdminMenuCard(
                 title = "Kategori Produk",
                 description = "Kelola kategori produk UMKM",
                 icon = Icons.Default.List,
-                onClick = onCategoryClick
+                onClick = onCategoryClick,
+                cardColor = Color(0xFFBBDEFB),
+                iconColor = Color(0xFF2196F3)
             )
 
-            // Menu Management
+            // Menu Management - ORANGE
             AdminMenuCard(
                 title = "Menu Produk",
                 description = "Kelola menu dan produk UMKM",
                 icon = Icons.Default.ShoppingCart,
-                onClick = onMenuClick
+                onClick = onMenuClick,
+                cardColor = Color(0xFFBBDEFB),
+                iconColor = Color(0xFF2196F3)
             )
 
-            // Order Management ✅ AKTIFKAN INI
+            // Order Management - BLUE
             AdminMenuCard(
                 title = "Pesanan",
                 description = "Kelola pesanan pelanggan",
-                icon = Icons.Default.ShoppingCart, // ✅ GANTI icon
-                onClick = onOrderClick, // ✅ GANTI onClick
-                enabled = true // ✅ UBAH jadi true
+                icon = Icons.Default.Menu,
+                onClick = onOrderClick,
+                cardColor = Color(0xFFBBDEFB),
+                iconColor = Color(0xFF2196F3),
+                enabled = true
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Logout Button
+            // Logout Button - RED
             OutlinedButton(
                 onClick = onLogout,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
+                    contentColor = Color(0xFFF44336)
+                ),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    Color(0xFFF44336)
                 )
             ) {
                 Icon(
@@ -133,30 +149,42 @@ fun AdminMenuCard(
     description: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit,
+    cardColor: Color, // ✅ TAMBAH parameter warna
+    iconColor: Color, // ✅ TAMBAH parameter warna icon
     enabled: Boolean = true
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp), // ✅ Height fixed 100dp (> 48dp sesuai SRS)
         enabled = enabled,
         colors = CardDefaults.cardColors(
-            containerColor = if (enabled) MaterialTheme.colorScheme.surface
-            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            containerColor = if (enabled) cardColor
+            else Color(0xFFF5F5F5).copy(alpha = 0.5f)
         )
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = if (enabled) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            )
+            // Icon dengan background circle
+            Surface(
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = if (enabled) iconColor.copy(alpha = 0.2f)
+                else Color(0xFF9E9E9E).copy(alpha = 0.2f),
+                modifier = Modifier.size(56.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.padding(12.dp),
+                    tint = if (enabled) iconColor
+                    else Color(0xFF9E9E9E)
+                )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -165,22 +193,24 @@ fun AdminMenuCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (enabled) MaterialTheme.colorScheme.onSurface
-                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    color = if (enabled) Color(0xFF212121) // ✅ Hitam
+                    else Color(0xFF9E9E9E)
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant
-                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    color = if (enabled) Color(0xFF757575) // ✅ Grey
+                    else Color(0xFFBDBDBD)
                 )
             }
 
             Icon(
                 imageVector = Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
-                tint = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant
-                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                tint = if (enabled) Color(0xFF9E9E9E)
+                else Color(0xFFE0E0E0),
+                modifier = Modifier.size(24.dp)
             )
         }
     }

@@ -1,9 +1,11 @@
 package com.example.ucp_project_pam.view.customer
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -11,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -21,6 +22,7 @@ import coil.compose.AsyncImage
 import com.example.ucp_project_pam.modeldata.*
 import com.example.ucp_project_pam.view.components.CartBadge
 import com.example.ucp_project_pam.viewmodel.customer.CustomerMenuViewModel
+import com.example.ucp_project_pam.viewmodel.category.CategoryListViewModel
 import com.example.ucp_project_pam.viewmodel.provider.PenyediaViewModel
 import java.text.NumberFormat
 import java.util.*
@@ -31,19 +33,24 @@ fun CustomerMenuListScreen(
     onNavigateBack: () -> Unit,
     onMenuClick: (Int) -> Unit,
     onCartClick: () -> Unit,
-    viewModel: CustomerMenuViewModel = viewModel(factory = PenyediaViewModel.Factory)
+    viewModel: CustomerMenuViewModel = viewModel(factory = PenyediaViewModel.Factory),
+    categoryViewModel: CategoryListViewModel = viewModel(factory = PenyediaViewModel.Factory) // ✅ TAMBAH
 ) {
     val menuUiState by remember { derivedStateOf { viewModel.menuUiState } }
     val addToCartState by remember { derivedStateOf { viewModel.addToCartState } }
     val cartItemCount by remember { derivedStateOf { viewModel.cartItemCount } }
     val filterState by remember { derivedStateOf { viewModel.filterState } }
 
+    // ✅ TAMBAH: State untuk kategori
+    val categoryUiState by remember { derivedStateOf { categoryViewModel.categoryUiState } }
+
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Load menus on first composition
+    // Load menus and categories
     LaunchedEffect(Unit) {
         viewModel.getAllMenus()
         viewModel.getCartCount()
+        categoryViewModel.getAllCategories() // ✅ TAMBAH
     }
 
     // Handle add to cart result
@@ -109,6 +116,73 @@ fun CustomerMenuListScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp)
             )
+
+            // ✅ TAMBAH: CATEGORY FILTER CHIPS
+            when (categoryUiState) {
+                is CategoryUiState.Success -> {
+                    val categories = (categoryUiState as CategoryUiState.Success).categories
+
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Chip "Semua"
+                        item {
+                            FilterChip(
+                                selected = filterState.categoryId == null,
+                                onClick = {
+                                    viewModel.updateCategoryFilter(null)
+                                },
+                                label = { Text("Semua") },
+                                leadingIcon = if (filterState.categoryId == null) {
+                                    {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                } else null
+                            )
+                        }
+
+                        // Chips untuk setiap kategori
+                        items(categories) { category ->
+                            FilterChip(
+                                selected = filterState.categoryId == category.id,
+                                onClick = {
+                                    viewModel.updateCategoryFilter(category.id)
+                                },
+                                label = { Text(category.name) },
+                                leadingIcon = if (filterState.categoryId == category.id) {
+                                    {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                } else null
+                            )
+                        }
+                    }
+                }
+                is CategoryUiState.Loading -> {
+                    // Optional: tampilkan shimmer loading untuk chips
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+                else -> {} // Error atau Idle, tidak tampilkan filter
+            }
 
             // Content
             Box(modifier = Modifier.fillMaxSize()) {

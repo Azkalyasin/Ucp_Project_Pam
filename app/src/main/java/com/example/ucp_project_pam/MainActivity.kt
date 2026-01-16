@@ -18,21 +18,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val navController = rememberNavController()
+            ucp_project_pamTheme {
+                val navController = rememberNavController()
 
-            val authViewModel: AuthViewModel = viewModel(
-                factory = PenyediaViewModel.Factory
-            )
+                val authViewModel: AuthViewModel = viewModel(
+                    factory = PenyediaViewModel.Factory
+                )
 
-            val profileViewModel: ProfileViewModel = viewModel(
-                factory = PenyediaViewModel.Factory
-            )
+                val profileViewModel: ProfileViewModel = viewModel(
+                    factory = PenyediaViewModel.Factory
+                )
 
-            PetaNavigasi(
-                navController = navController,
-                authViewModel = authViewModel,
-                profileViewModel = profileViewModel
-            )
+                PetaNavigasi(
+                    navController = navController,
+                    authViewModel = authViewModel,
+                    profileViewModel = profileViewModel
+                )
+            }
         }
     }
 }

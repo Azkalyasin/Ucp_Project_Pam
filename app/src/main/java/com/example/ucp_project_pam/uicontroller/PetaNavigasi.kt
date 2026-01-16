@@ -10,7 +10,7 @@ import com.example.ucp_project_pam.view.customer.*
 import com.example.ucp_project_pam.view.admin.*
 import com.example.ucp_project_pam.view.admin.category.*
 import com.example.ucp_project_pam.view.admin.menu.*
-import com.example.ucp_project_pam.view.admin.order.* // ✅ TAMBAH import
+import com.example.ucp_project_pam.view.admin.order.*
 import com.example.ucp_project_pam.view.*
 import com.example.ucp_project_pam.viewmodel.AuthViewModel
 import com.example.ucp_project_pam.viewmodel.ProfileViewModel
@@ -117,6 +117,7 @@ fun PetaNavigasi(
         composable("profile") {
             ProfileScreen(
                 viewModel = profileViewModel,
+                onNavigateBack = { navController.popBackStack() },
                 onLogout = {
                     authViewModel.resetState()
                     navController.navigate("login") {

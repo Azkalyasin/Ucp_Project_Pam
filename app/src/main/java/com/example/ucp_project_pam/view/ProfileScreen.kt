@@ -23,6 +23,7 @@ import com.example.ucp_project_pam.viewmodel.ProfileViewModel
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel,
+    onNavigateBack: () -> Unit, // ✅ TAMBAH parameter ini
     onLogout: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -35,14 +36,28 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profil Saya") },
+                title = {
+                    Text(
+                        "Profil Saya",
+                        color = androidx.compose.ui.graphics.Color.White,
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Kembali",
+                            tint = androidx.compose.ui.graphics.Color.White
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = androidx.compose.ui.graphics.Color(0xFFFF9800) // ✅ Orange
                 )
             )
         }
     ) { paddingValues ->
+        // ... rest of the code (tidak berubah)
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -76,7 +91,7 @@ fun ProfileScreen(
         }
     }
 
-    // Logout Confirmation Dialog
+    // Logout Confirmation Dialog (tidak berubah)
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
